@@ -1,256 +1,137 @@
-import 'package:ebuy/apicalling/api.dart';
-import 'package:ebuy/providers/cartprovider.dart';
-import 'package:ebuy/providers/wishlistproviders.dart';
+import 'package:ebuy/nav%20bar/home.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/cartprovider.dart';
 
+class ProductDetailScreen extends StatelessWidget {
+  final Product product;
 
-class ProductDetailPage extends StatefulWidget {
-  final ProductElement product;
+  const ProductDetailScreen({Key? key, required this.product}) : super(key: key);
 
-  const ProductDetailPage({required this.product});
-
-  @override
-  _ProductDetailPageState createState() => _ProductDetailPageState();
-}
-
-class _ProductDetailPageState extends State<ProductDetailPage> {
-  int selectedQuantity = 1;
-  Color _iconColor = Colors.black;
-  ProductProvider convertProductElementToProductProvider(ProductElement productElement) {
-    return ProductProvider(
-      title: productElement.title ?? '',
-      thumbnail:  productElement.thumbnail??'',
-      description: productElement.description ?? '',
-      price:  0.0,
-      discountPercentage: 0.0,
-      rating: 0.0,
-    );
-  }
-
-  Products convertProductElementToProducts(ProductElement productElement) {
-    return Products(
-      title: productElement.title ?? '',
-      thumbnail:  productElement.thumbnail??'',
-      description: productElement.description ?? '',
-      price:  0.0,
-      discountPercentage: 0.0,
-      rating: 0.0,
-    );
-  }
-  
   @override
   Widget build(BuildContext context) {
+    final cartProvider = Provider.of<CartProvider>(context);
+    int quantity = cartProvider.cartItems.firstWhere(
+      (item) => item.title == product.title,
+      orElse: () => ProductProvider(
+        title: product.title,
+        thumbnail: product.imageurl,
+        description: product.description,
+        price: product.price,
+        discountPercentage: 0.0,
+        rating: 0.0,
+      ),
+    ).quantity ?? 0;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Center(
-          child: Text(
-            'Product Detail',
-            style: TextStyle(color: Colors.black, fontSize: 20),
-          ),
-        ),
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {},
-          )
-        ],
+        title: Text(product.title),
       ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 10),
             Center(
-              child: Image.network(
-                widget.product.images![0],
-                height: 350,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.6,
+                height: MediaQuery.of(context).size.width * 0.6,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(product.imageurl),
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 16),
+            Text(
+              product.title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Price: ₹${product.price.toStringAsFixed(2)}',
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              product.description,
+              style: const TextStyle(fontSize: 16),
+            ),
+            const Spacer(),
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Text(
-                    widget.product.title ?? '',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                IconButton(
+                  onPressed: () {
+                    if (quantity > 1) {
+                      cartProvider.updateProductQuantity(product.title, quantity - 1);
+                    } else {
+                      cartProvider.removeFromCart(
+                        ProductProvider(
+                          title: product.title,
+                          thumbnail: product.imageurl,
+                          description: product.description,
+                          price: product.price,
+                          discountPercentage: 0.0,
+                          rating: 0.0,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.remove),
+                ),
+                Text(
+                  quantity.toString(),
+                  style: const TextStyle(fontSize: 20),
+                ),
+                IconButton(
+                  onPressed: () {
+                    cartProvider.updateProductQuantity(product.title, quantity + 1);
+                  },
+                  icon: const Icon(Icons.add),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Text('Price: ${widget.product.price ?? 0}',
-                  style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20)),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Text('Brand: ${widget.product.brand ?? ''}',
-                  style: const TextStyle(color: Colors.black)),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Text('Category: ${widget.product.category ?? ''}',
-                  style: const TextStyle(color: Colors.black)),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Text(
-                  'Description: ${widget.product.description ?? ''}',
-                  style: const TextStyle(color: Colors.black)),
-            ),
-            const SizedBox(height: 20),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Container(
-                width: 500,
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 15,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _iconColor = Colors.red; 
-                          });
-                          Products products = convertProductElementToProducts(widget.product);
-                          Provider.of<WishlistProvider>(context, listen: false).addToWishlist(products);
-                        },
-                        icon: Icon(
-                          Icons.favorite_rounded,
-                          color: _iconColor, 
-                        ),
-                        label: const Text(
-                          "Wishlist",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            side:
-                                const BorderSide(color: Colors.black87, width: 1.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.share, color: Colors.black),
-                        label: const Text("Share",
-                            style: TextStyle(color: Colors.black)),
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            side:
-                                const BorderSide(color: Colors.black87, width: 1.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    DecoratedBox(
-                        decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.black87, width: 1.0),
-                        borderRadius: BorderRadius.circular(40.0),
-                      ),
-                      child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: DropdownButton<int>(
-                      value: selectedQuantity,
-                      items: List.generate(5, (index) => index + 1)
-                      .map((quantity) => DropdownMenuItem<int>(
-                      value: quantity,
-                      child: Text('$quantity'),
-                     ))
-                      .toList(),
-                      onChanged: (value) {
-                      setState(() {
-                      selectedQuantity = value!;
-                     });
-                   },
-                 ),
-               ),
-             )
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
             Center(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 88.0),
-                child: Row(
-                  children: [
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ProductProvider productProvider = convertProductElementToProductProvider(widget.product);
-                            Provider.of<CartProvider>(context, listen: false).addToCart(productProvider, quantity: selectedQuantity);
-                          },
-                          child: const Text('Add to Cart',
-                              style: TextStyle(color: Colors.black)),
-                          style: ElevatedButton.styleFrom(
-                              primary: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0),
-                                side:
-                                    const BorderSide(color: Colors.black87, width: 1.0),
-                              )),
-                        ),
+              child: ElevatedButton(
+                onPressed: () {
+                  if (quantity > 0) {
+                    cartProvider.addToCart(ProductProvider(
+                      title: product.title,
+                      thumbnail: product.imageurl,
+                      description: product.description,
+                      price: product.price,
+                      discountPercentage: 0.0,
+                      rating: 0.0,
+                    ));
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${product.title} updated in the cart!'),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          child: const Text('Buy Now',
-                              style: TextStyle(color: Colors.black)),
-                          style: ElevatedButton.styleFrom(
-                              primary: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0),
-                                side:
-                                    const BorderSide(color: Colors.black87, width: 1.0),
-                              )),
-                        ),
+                    );
+                  } else {
+                    cartProvider.removeFromCart(
+                      ProductProvider(
+                        title: product.title,
+                        thumbnail: product.imageurl,
+                        description: product.description,
+                        price: product.price,
+                        discountPercentage: 0.0,
+                        rating: 0.0,
                       ),
-                    ),
-                  ],
-                ),
+                    );
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${product.title} removed from the cart!'),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Update Cart'),
               ),
             ),
           ],

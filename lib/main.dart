@@ -1,26 +1,26 @@
 import 'dart:async';
+import 'package:ebuy/authentication/login.dart';
+import 'package:ebuy/nav%20bar/Nav_bar.dart';
 import 'package:ebuy/providers/cartprovider.dart';
-import 'package:ebuy/providers/wishlistproviders.dart';
-import 'package:ebuy/nav%20bar/homescreen.dart';
-import 'package:ebuy/authentication/welcome.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => CartProvider()),
-        ChangeNotifierProvider(create: (context) => WishlistProvider()),
       ],
-      child: Splash(),
+      child: MyApp(),
     ),
-    );
+  );
 }
 
-
-class Splash extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,18 +36,17 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  
   @override
   void initState() {
     super.initState();
-    Timer( 
-      Duration(seconds: 5),
-      () => Navigator.pushReplacement(
-        context as BuildContext,
-        MaterialPageRoute(
-          builder: (context) => Welcome(),
-        ),
-      ),
+    Timer(
+      const Duration(seconds: 3),
+      () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => AuthWrapper()),
+        );
+      },
     );
   }
 
@@ -62,16 +61,41 @@ class _SplashScreenState extends State<SplashScreen> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
-                child: Image(
+                child: const Image(
                   width: 450,
                   image: NetworkImage(
-                      'https://scontent.fhyd7-1.fna.fbcdn.net/v/t1.18169-9/14591852_1830686733811192_8657596699657526717_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=09cbfe&_nc_ohc=CedUG6Nmhe0AX9gO_bL&_nc_ht=scontent.fhyd7-1.fna&oh=00_AfBTJzGSmcu98RkjEKDiJ-0pREAPX6xFrSfSMP3INRKZyw&oe=65362E7A'),
+                      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB6BLOzsJibUZM4yy3LFY88k1ELEzplZ6cRA&s'),
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // If the user is logged in, show HomeScreen
+        if (snapshot.connectionState == ConnectionState.active) {
+          final User? user = snapshot.data;
+          if (user == null) {
+            return LoginPage();
+          } else {
+            return HomeScreen();
+          }
+        }
+
+        // While waiting for authentication state, show a loading spinner
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      },
     );
   }
 }

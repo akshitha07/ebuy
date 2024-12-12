@@ -1,22 +1,9 @@
 //import 'package:ebuy/nav%20bar/.dart';
 import 'package:ebuy/nav%20bar/cart.dart';
 import 'package:ebuy/nav%20bar/home.dart';
-import 'package:ebuy/nav%20bar/wishlist.dart';
+import 'package:ebuy/nav%20bar/profile.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
-    );
-  }
-}
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -27,10 +14,11 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _tabs = [
-    Apicalls(),
+    // Apicalls(),
+    ProductScreen(),
     //StoresTab(),
     CartScreen(),
-    Wishlist(),
+    UserProfilePage()
     //WishlistTab(),    
   ];
 
@@ -55,8 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Cart',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Wishlist',
+            icon: Icon(Icons.person),
+            label: 'Profile',
           ),
         ],
       ),

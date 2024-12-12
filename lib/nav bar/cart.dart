@@ -10,24 +10,7 @@ class CartScreen extends StatelessWidget {
     List<ProductProvider> cartItems = Provider.of<CartProvider>(context).cartItems;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text(
-          'My Cart',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            color: Colors.black,
-            onPressed: () {},
-          ),
-        ],
-        iconTheme: const IconThemeData(
-          color: Colors.black, 
-        ),
-      ),
-      drawer: MyDrawer(),
+      
       body: cartItems.isEmpty
           ? Center(
               child: Text('Your cart is empty.'),
@@ -80,10 +63,10 @@ class MyDrawer extends StatelessWidget {
             leading: const Icon(Icons.person),
             title: const Text("Account"),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Account()),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => Account()),
+              // );
             },
           ),
           const ListTile(
@@ -105,7 +88,7 @@ class MyDrawer extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => Splash()),
+                MaterialPageRoute(builder: (context) => MyApp()),
               );
             },
           ),
